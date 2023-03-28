@@ -90,7 +90,7 @@ module udp_rx (
       st_ip_head: begin  //接收IP首部
         if (!gmii_rx_dv) next_state = st_rx_error;
         else if (des_mac[47:0] != BOARD_MAC && (des_mac[47:0] != 48'hff_ff_ff_ff_ff_ff)) next_state = st_rx_error;  //本机mac错误
-        else if (eth_header[15:0] != ETH_TYPE) next_state = st_rx_end;  //iptype错误
+        else if (eth_header[15:0] != ETH_TYPE) next_state = st_rx_error;  //iptype错误
         else if (state_cnt == 12'd20 - 1) next_state = st_udp_head;
         else next_state = st_ip_head;
       end

@@ -1,0 +1,188 @@
+/*
+
+Xilinx Vivado v2022.1 (64-bit) [Major: 2022, Minor: 1]
+SW Build: 3526262 on Mon Apr 18 15:48:16 MDT 2022
+IP Build: 3524634 on Mon Apr 18 20:55:01 MDT 2022
+
+Process ID (PID): 9328
+License: Customer
+Mode: GUI Mode
+
+Current time: 	Mon May 01 14:12:49 CST 2023
+Time zone: 	China Standard Time (Asia/Shanghai)
+
+OS: Windows 10
+OS Version: 10.0
+OS Architecture: amd64
+Available processors (cores): 6
+
+Screen size: 1920x1080
+Screen resolution (DPI): 100
+Available screens: 1
+Default font: family=Dialog,name=Dialog,style=plain,size=12
+Scale size: 12
+
+Java version: 	11.0.11 64-bit
+Java home: 	D:/HardWare/Xilinx/Vivado/2022.1/tps/win64/jre11.0.11_9
+Java executable: 	D:/HardWare/Xilinx/Vivado/2022.1/tps/win64/jre11.0.11_9/bin/java.exe
+Java arguments: 	[-Dsun.java2d.pmoffscreen=false, -Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2, -Dsun.java2d.xrender=false, -Dsun.java2d.d3d=false, -Dsun.awt.nopixfmt=true, -Dsun.java2d.dpiaware=true, -Dsun.java2d.uiScale.enabled=false, -Xverify:none, -Dswing.aatext=true, -XX:-UsePerfData, -Djdk.map.althashing.threshold=512, -XX:StringTableSize=4072, --add-opens=java.desktop/com.sun.awt=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-opens=java.base/java.nio=ALL-UNNAMED, --add-opens=java.desktop/sun.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-opens=java.desktop/javax.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-opens=java.desktop/java.awt.event=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.plaf.synth=ALL-UNNAMED, --add-exports=java.base/java.nio=ALL-UNNAMED, --add-exports=java.desktop/sun.swing=ALL-UNNAMED, --add-exports=java.desktop/javax.swing=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.tree=ALL-UNNAMED, --add-exports=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-exports=java.desktop/sun.swing=ALL-UNNAMED, --add-exports=java.desktop/sun.swing.table=ALL-UNNAMED, --add-exports=java.desktop/sun.swing.plaf.synth=ALL-UNNAMED, --add-exports=java.desktop/sun.awt.shell=ALL-UNNAMED, --add-exports=java.base/sun.security.action=ALL-UNNAMED, --add-exports=java.desktop/sun.font=ALL-UNNAMED, -XX:NewSize=60m, -XX:MaxNewSize=60m, -Xms256m, -Xmx3072m, -Xss5m]
+Java initial memory (-Xms): 	256 MB
+Java maximum memory (-Xmx):	 3 GB
+
+
+User name: 	huang
+User home directory: C:/Users/huang
+User working directory: E:/Github/FPGA_eth_udp_loop/Example
+User country: 	CN
+User language: 	zh
+User locale: 	zh_CN
+
+RDI_BASEROOT: D:/HardWare/Xilinx/Vivado
+HDI_APPROOT: D:/HardWare/Xilinx/Vivado/2022.1
+RDI_DATADIR: D:/HardWare/Xilinx/Vivado/2022.1/data
+RDI_BINDIR: D:/HardWare/Xilinx/Vivado/2022.1/bin
+
+Vivado preferences file: C:/Users/huang/AppData/Roaming/Xilinx/Vivado/2022.1/vivado.xml
+Vivado preferences directory: C:/Users/huang/AppData/Roaming/Xilinx/Vivado/2022.1/
+Vivado layouts directory: C:/Users/huang/AppData/Roaming/Xilinx/Vivado/2022.1/data/layouts
+PlanAhead jar file: 	D:/HardWare/Xilinx/Vivado/2022.1/lib/classes/planAhead.jar
+Vivado log file: 	E:/Github/FPGA_eth_udp_loop/Example/vivado.log
+Vivado journal file: 	E:/Github/FPGA_eth_udp_loop/Example/vivado.jou
+Engine tmp dir: 	E:/Github/FPGA_eth_udp_loop/Example/.Xil/Vivado-9328-Administrator
+
+Xilinx Environment Variables
+----------------------------
+INTELFPGAOCLSDKROOT: D:\HardWare\intel\FPGA\18.1\hld
+XILINX: D:/HardWare/Xilinx/Vivado/2022.1/ids_lite/ISE
+XILINX_DSP: D:/HardWare/Xilinx/Vivado/2022.1/ids_lite/ISE
+XILINX_HLS: D:/HardWare/Xilinx/Vitis_HLS/2022.1
+XILINX_PLANAHEAD: D:/HardWare/Xilinx/Vivado/2022.1
+XILINX_SDK: D:/HardWare/Xilinx/Vitis/2022.1
+XILINX_VITIS: D:/HardWare/Xilinx/Vitis/2022.1
+XILINX_VIVADO: D:/HardWare/Xilinx/Vivado/2022.1
+XILINX_VIVADO_HLS: D:/HardWare/Xilinx/Vivado/2022.1
+
+
+GUI allocated memory:	256 MB
+GUI max memory:		3,072 MB
+Engine allocated memory: 1,540 MB
+
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+*/
+
+// TclEventType: START_GUI
+// Tcl Message: start_gui 
+// TclEventType: PROJECT_OPEN_DIALOG
+// [GUI Memory]: 74 MB (+75264kb) [00:00:09]
+// [Engine Memory]: 1,437 MB (+1355401kb) [00:00:09]
+// Opening Vivado Project: E:\Github\FPGA_eth_udp_loop\Example\eth_udp_loop.xpr. Version: Vivado v2022.1 
+// TclEventType: DEBUG_PROBE_SET_CHANGE
+// TclEventType: FLOW_ADDED
+// Tcl Message: open_project E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.xpr 
+// TclEventType: MSGMGR_MOVEMSG
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILE_SET_NEW
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: RUN_COMPLETED
+// TclEventType: RUN_STATUS_CHANGE
+// TclEventType: RUN_CURRENT
+// TclEventType: PROJECT_DASHBOARD_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: PROJECT_DASHBOARD_GADGET_NEW
+// TclEventType: PROJECT_DASHBOARD_GADGET_CHANGE
+// TclEventType: FILE_SET_CHANGE
+// HMemoryUtils.trashcanNow. Engine heap size: 1,571 MB. GUI used memory: 58 MB. Current time: 5/1/23, 2:12:50 PM CST
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: PROJECT_NEW
+// Tcl Message: open_project E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.xpr 
+// Tcl Message: Scanning sources... Finished scanning sources 
+// Tcl Message: INFO: [IP_Flow 19-234] Refreshing IP repositories INFO: [IP_Flow 19-1704] No user IP repositories specified INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/HardWare/Xilinx/Vivado/2022.1/data/ip'. 
+// TclEventType: PROJECT_NEW
+// [GUI Memory]: 94 MB (+16458kb) [00:00:15]
+// [Engine Memory]: 1,600 MB (+95793kb) [00:00:15]
+// WARNING: HEventQueue.dispatchEvent() is taking  2529 ms.
+// [GUI Memory]: 120 MB (+23055kb) [00:00:17]
+// Tcl Message: open_project: Time (s): cpu = 00:00:16 ; elapsed = 00:00:08 . Memory (MB): peak = 1773.336 ; gain = 149.898 
+// Project name: eth_udp_loop; location: E:/Github/FPGA_eth_udp_loop/Example; part: xc7a35tfgg484-2
+dismissDialog("Open Project"); // bA
+// Tcl Message: update_compile_order -fileset sources_1 
+selectButton(PAResourceAtoD.CmdMsgDialog_OK, "OK"); // f
+dismissDialog("Critical Messages"); // a
+// HMemoryUtils.trashcanNow. Engine heap size: 1,677 MB. GUI used memory: 74 MB. Current time: 5/1/23, 2:13:05 PM CST
+// Elapsed time: 12 seconds
+selectMenu(PAResourceItoN.MainMenuMgr_TOOLS, "Tools"); // aj
+selectMenu(RDIResourceCommand.RDICommands_CUSTOM_COMMANDS, "Custom Commands"); // ao
+selectMenuItem(RDIResourceCommand.RDICommands_SETTINGS, "Settings..."); // ar
+dismissMenu(PAResourceItoN.MainMenuMgr_TOOLS, "Tools"); // aj
+// Run Command: RDIResourceCommand.RDICommands_SETTINGS
+// Tcl Command: 'rdi::info_commands {device::*}'
+// Tcl Command: 'rdi::info_commands {debug::*}'
+// Tcl Command: 'rdi::info_commands {*}'
+// [Engine Memory]: 1,684 MB (+4242kb) [00:00:36]
+// WARNING: HEventQueue.dispatchEvent() is taking  1597 ms.
+// [GUI Memory]: 136 MB (+9695kb) [00:00:37]
+selectTree(PAResourceQtoS.SettingsDialog_PROJECT_TREE, "[projectRoot, Simulation]", 1, false); // B
+selectTab(PAResourceOtoP.ProjectSettingsSimulationPanel_TABBED_PANE, PAResourceOtoP.ProjectSettingsSimulationPanel_ADVANCED, "Advanced", 4); // i
+selectCheckBox(PAResourceOtoP.ProjectSettingsSimulationPanel_ENABLE_INCREMENTAL_COMPILATION, "Enable incremental compilation", false); // g: FALSE
+selectButton(RDIResource.BaseDialog_APPLY, "Apply"); // a
+// TclEventType: FILE_SET_CHANGE
+// TclEventType: FILE_SET_OPTIONS_CHANGE
+// Tcl Message: set_property INCREMENTAL false [get_filesets sim_1] 
+// [GUI Memory]: 149 MB (+7425kb) [00:00:45]
+selectButton(RDIResource.BaseDialog_OK, "OK"); // a
+dismissDialog("Settings"); // d
+selectTree(PAResourceEtoH.FlowNavigatorTreePanel_FLOW_NAVIGATOR_TREE, "[, Simulation, Run Simulation]", 10, false); // n
+selectMenuItem(PAResourceCommand.PACommandNames_SIMULATION_RUN_BEHAVIORAL, "Run Behavioral Simulation"); // ar
+// Run Command: PAResourceCommand.PACommandNames_SIMULATION_RUN_BEHAVIORAL
+// TclEventType: LAUNCH_SIM
+// TclEventType: FILE_SET_OPTIONS_CHANGE
+// TclEventType: LOAD_FEATURE
+// TclEventType: PACKAGER_MESSAGE_RESET
+// TclEventType: PACKAGER_UNLOAD_CORE
+// TclEventType: PACKAGER_MESSAGE_RESET
+// TclEventType: PACKAGER_UNLOAD_CORE
+// TclEventType: PACKAGER_MESSAGE_RESET
+// Tcl Message: launch_simulation 
+// Tcl Message: Command: launch_simulation  
+// Tcl Message: INFO: [Vivado 12-12493] Simulation top is 'rth_rx_tb' 
+// TclEventType: PACKAGER_UNLOAD_CORE
+// HMemoryUtils.trashcanNow. Engine heap size: 1,742 MB. GUI used memory: 92 MB. Current time: 5/1/23, 2:13:25 PM CST
+// Tcl Message: INFO: [USF-XSim-97] Finding global include files... INFO: [USF-XSim-98] Fetching design files from 'sim_1'... INFO: [USF-XSim-2] XSim::Compile design INFO: [USF-XSim-61] Executing 'COMPILE and ANALYZE' step in 'E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.sim/sim_1/behav/xsim' 
+// Tcl Message: "xvlog --relax -prj rth_rx_tb_vlog.prj" 
+// TclEventType: LAUNCH_SIM_LOG
+// Tcl Message: INFO: [VRFC 10-2263] Analyzing Verilog file "E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.srcs/sources_1/new/udp/udp_rx.v" into library xil_defaultlib INFO: [VRFC 10-311] analyzing module udp_rx INFO: [VRFC 10-2263] Analyzing Verilog file "E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.srcs/sim_1/new/rth_rx_tb.v" into library xil_defaultlib INFO: [VRFC 10-311] analyzing module rth_rx_tb INFO: [VRFC 10-2263] Analyzing Verilog file "E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib INFO: [VRFC 10-311] analyzing module glbl 
+// Tcl Message: INFO: [USF-XSim-69] 'compile' step finished in '3' seconds INFO: [USF-XSim-3] XSim::Elaborate design INFO: [USF-XSim-61] Executing 'ELABORATE' step in 'E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.sim/sim_1/behav/xsim' 
+// Tcl Message: "xelab --debug typical --relax --mt 2 -L xil_defaultlib -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot rth_rx_tb_behav xil_defaultlib.rth_rx_tb xil_defaultlib.glbl -log elaborate.log" 
+// TclEventType: LAUNCH_SIM
+// TclEventType: LOAD_FEATURE
+// Tcl Message: Built simulation snapshot rth_rx_tb_behav 
+// Tcl Message: INFO: [USF-XSim-69] 'elaborate' step finished in '3' seconds INFO: [USF-XSim-4] XSim::Simulate design 
+// Tcl Message: INFO: [USF-XSim-61] Executing 'SIMULATE' step in 'E:/Github/FPGA_eth_udp_loop/Example/eth_udp_loop.sim/sim_1/behav/xsim' INFO: [USF-XSim-98] *** Running xsim 
+// Tcl Message:    with args "rth_rx_tb_behav -key {Behavioral:sim_1:Functional:rth_rx_tb} -tclbatch {rth_rx_tb.tcl} -log {simulate.log}" 
+// Tcl Message: INFO: [USF-XSim-8] Loading simulator feature 
+// HMemoryUtils.trashcanNow. Engine heap size: 1,767 MB. GUI used memory: 92 MB. Current time: 5/1/23, 2:13:54 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,767 MB. GUI used memory: 92 MB. Current time: 5/1/23, 2:14:24 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,768 MB. GUI used memory: 91 MB. Current time: 5/1/23, 2:14:54 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,768 MB. GUI used memory: 91 MB. Current time: 5/1/23, 2:15:24 PM CST
+// HMemoryUtils.trashcanNow. Engine heap size: 1,768 MB. GUI used memory: 91 MB. Current time: 5/1/23, 2:16:24 PM CST
+// Elapsed time: 206 seconds
+selectButton(RDIResource.ProgressDialog_CANCEL, "Cancel"); // a
+// Tcl Message: INFO: [Common 17-41] Interrupt caught. Command should exit soon. 
+selectButton(RDIResource.ProgressDialog_BACKGROUND, "Background"); // a
+// 'd' command handler elapsed time: 207 seconds
+// HMemoryUtils.trashcanNow. Engine heap size: 1,768 MB. GUI used memory: 91 MB. Current time: 5/1/23, 2:16:54 PM CST

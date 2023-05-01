@@ -42,7 +42,7 @@ module rth_rx_tb;
   // udp_rx Outputs
   wire        rec_pkt_done;
   wire        rec_en;
-  wire [31:0] rec_data;
+  wire [7:0] rec_data;
   wire [15:0] rec_byte_num;
 
 
@@ -140,7 +140,7 @@ module rth_rx_tb;
 
       .rec_pkt_done(rec_pkt_done),
       .rec_en      (rec_en),
-      .rec_data    (rec_data[31:0]),
+      .rec_data    (rec_data[7:0]),
       .rec_byte_num(rec_byte_num[15:0])
   );
 

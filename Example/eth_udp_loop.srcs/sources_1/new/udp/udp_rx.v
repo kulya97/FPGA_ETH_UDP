@@ -1,5 +1,3 @@
-//****************************************************************************************//
-
 module udp_rx (
     input clk,   //时钟信号
     input rst_n, //复位信号，低电平有效
@@ -8,7 +6,7 @@ module udp_rx (
     input      [ 7:0] gmii_rxd,      //GMII输入数据
     output reg        rec_pkt_done,  //以太网单包数据接收完成信号
     output reg        rec_en,        //以太网接收的数据使能信号
-    output reg [31:0] rec_data,      //以太网接收的数据
+    output reg [ 7:0] rec_data,      //以太网接收的数据
     output reg [15:0] rec_byte_num   //以太网接收的有效字数 单位:byte     
 );
   //parameter define
@@ -22,18 +20,19 @@ module udp_rx (
   reg  [111:0] eth_header;  //以太网部首
   reg  [159:0] ip_header;  //ip部首
   reg  [ 63:0] udp_header;  //udp部首
-  //   reg [ 47:0] des_mac;  //目的MAC地址
-  //   reg [ 15:0] eth_type;  //以太网类型
-  //   reg [ 31:0] des_ip;  //目的IP地址
+
 
   wire [ 47:0] des_mac;  //目的MAC地址
   wire [ 15:0] eth_type;  //以太网类型
   wire [ 31:0] des_ip;  //目的IP地址
   wire [ 15:0] udp_byte_num;
+
+
   assign des_mac      = eth_header[111:64];
   assign eth_type     = eth_header[15:0];
   assign des_ip       = ip_header[31:0];
   assign udp_byte_num = udp_header[31:16];
+  
   localparam st_idle = 7'd0;  //初始状态，等待接收前导码
   localparam st_preamble = 7'd1;  //接收前导码状态 
   localparam st_eth_head = 7'd2;  //接收以太网帧头
@@ -151,33 +150,15 @@ module udp_rx (
     else udp_header <= udp_header;
   end
   /****************解析数据*************************/
-  reg [3:0] rec_cnt;
   always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) rec_cnt <= 4'd0;
-    else if (rec_cnt == 4'd3) rec_cnt <= 4'd0;
-    else if (cur_state != next_state) rec_cnt <= 4'd0;  //这里最好还是改一下
-    else rec_cnt <= rec_cnt + 1'd1;
+    if (!rst_n) rec_data <= 'd0;
+    else if (cur_state == st_rx_data) rec_data[7:0] <= rxd_data[7:0];
+    else rec_data <= 'd0;
   end
 
-  reg [7:0] rxd_data_d;  //打拍数据
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) rxd_data_d <= 8'd0;
-    else rxd_data_d <= rxd_data;
-  end
-
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) rec_data <= 32'd0;
-    else if (cur_state == st_idle) rec_data <= 32'd0;
-    else if (cur_state != st_rx_data) rec_data <= 32'd0;
-    else if (rec_cnt == 4'd0) rec_data[31:24] <= rxd_data[7:0];
-    else if (rec_cnt == 4'd1) rec_data[23:16] <= rxd_data[7:0];
-    else if (rec_cnt == 4'd2) rec_data[15:8] <= rxd_data[7:0];
-    else if (rec_cnt == 4'd3) rec_data[7:0] <= rxd_data[7:0];
-    else rec_data[7:0] <= rec_data[7:0];
-  end
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) rec_en <= 1'd0;
-    else if (cur_state == st_rx_data && rec_cnt == 4'd3 || (cur_state == st_rx_data && next_state == st_rx_end)) rec_en <= 1'b1;
+    else if (cur_state == st_rx_data) rec_en <= 1'b1;
     else rec_en <= 1'd0;
   end
   /***************************************************************/
@@ -185,7 +166,7 @@ module udp_rx (
     if (!rst_n) begin
       rec_pkt_done <= 1'd0;
       rec_byte_num <= 16'd0;
-    end else if (cur_state == st_rx_data && next_state == st_rx_end) begin
+    end else if (cur_state == st_rx_end) begin
       rec_pkt_done <= 1'b1;
       rec_byte_num <= udp_header[31:16] - 16'd8;
     end else begin

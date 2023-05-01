@@ -52,12 +52,12 @@ module eth_udp_loop (
   wire [ 7:0] udp_gmii_txd;  //UDP GMII输出数据
   wire        rec_pkt_done;  //UDP单包数据接收完成信号
   wire        rec_en;  //UDP接收的数据使能信号
-  wire [31:0] rec_data;  //UDP接收的数据
+  wire [ 7:0] rec_data;  //UDP接收的数据
   wire [15:0] rec_byte_num;  //UDP接收的有效字节数 单位:byte 
   wire [15:0] tx_byte_num;  //UDP发送的有效字节数 单位:byte 
   wire        udp_tx_done;  //UDP发送完成信号
   wire        tx_req;  //UDP读数据请求信号
-  wire [31:0] tx_data;  //UDP待发送数据
+  wire [ 7:0] tx_data;  //UDP待发送数据
 
   //*****************************************************
   //**                    main code
@@ -68,12 +68,12 @@ module eth_udp_loop (
   assign des_mac     = src_mac;
   assign des_ip      = src_ip;
   assign eth_rst_n   = sys_rst_n;
-  wire clk_400m;
+  wire clk_250m;
   //MMCM/PLL
   clk_wiz u_clk_wiz (
       .clk_in1 (sys_clk),
       .clk_out1(clk_200m),
-      .clk_out2(clk_400m),
+      .clk_out2(clk_250m),
       .reset   (~sys_rst_n),
       .locked  (locked)
   );
@@ -155,11 +155,25 @@ module eth_udp_loop (
       .tx_req      (tx_req)
   );
 
+  ila_0 your_instance_name (
+      .clk(clk_250m),  // input wire clk
+
+
+      .probe0(gmii_rxd),         // input wire [7:0]  probe0  
+      .probe1(gmii_rx_dv),          // input wire [0:0]  probe1 
+      .probe2(gmii_rx_clk),     // input wire [0:0]  probe2 
+      .probe3(tx_req),      // input wire [0:0]  probe3 
+      .probe4(udp_gmii_txd),        // input wire [7:0]  probe4 
+      .probe5(udp_gmii_tx_en),          // input wire [0:0]  probe5 
+      .probe6(gmii_tx_clk),  // input wire [0:0]  probe6 
+      .probe7(tx_start_en)      // input wire [0:0]  probe7
+  );
+
   uart_module uart_module (
       .sys_clk    (gmii_rx_clk),
       .rst_n      (sys_rst_n),
       .uart_tx    (uart_txd),
-      .uart_tx_reg(rec_data[31:0]),
+      .uart_tx_reg({24'd0, rec_data[7:0]}),
       .uart_tx_en (rec_en)
   );
   assign led[0] = rec_en;

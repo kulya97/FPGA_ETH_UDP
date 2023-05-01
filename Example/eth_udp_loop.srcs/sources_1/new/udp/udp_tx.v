@@ -5,7 +5,7 @@ module udp_tx (
     input [31:0] des_ip,   //发送的目标IP地址
 
     input             tx_start_en,  //以太网开始发送信号
-    input      [31:0] tx_data,      //以太网待发送数据
+    input      [ 7:0] tx_data,      //以太网待发送数据
     input      [15:0] tx_byte_num,  //以太网发送的有效字节数
     output reg        tx_done,      //以太网发送完成信号
     output reg        tx_req,       //读数据请求信号
@@ -28,7 +28,9 @@ module udp_tx (
   parameter DES_MAC = 48'hff_ff_ff_ff_ff_ff;
   //目的IP地址
   parameter DES_IP = {8'd192, 8'd168, 8'd1, 8'd102};
-  localparam ETH_TYPE = 16'h0800;  //以太网协议类型 IP协议
+  //以太网协议类型 IP协议
+  localparam ETH_TYPE = 16'h0800;
+
   //以太网数据最小46个字节，IP首部20个字节+UDP首部8个字节
   //所以数据至少46-20-8=18个字节
   localparam MIN_DATA_NUM = 16'd18;
@@ -44,123 +46,26 @@ module udp_tx (
   localparam st_udp_head = 7'd6;  //发送UDP首部
   localparam st_tx_data = 7'd7;  //发送数据
   localparam st_crc = 7'd8;  //发送CRC校验值
+  localparam st_done = 7'd9;
   /********************************************************/
 
-  reg [ 7:0] preamble_header                                  [ 7:0];  //前导码
-  reg [ 7:0] eth_header                                       [13:0];  //以太网首部
-  reg [ 7:0] ip_header                                        [19:0];  //IP首部, 有校验
-  reg [ 7:0] udp_header                                       [ 7:0];  //UDP首部，有校验
-  reg [31:0] check_buffer;  //首部校验和
-
-  reg [15:0] tx_data_num;  //发送的有效数据字节个数
-  reg [15:0] total_num;  //总字节数
-  reg [15:0] udp_num;  //UDP字节数
-
-  always @(posedge clk, negedge rst_n) begin
-    if (!rst_n) begin
-      preamble_header[0] = 8'h55;
-      preamble_header[1] = 8'h55;
-      preamble_header[2] = 8'h55;
-      preamble_header[3] = 8'h55;
-      preamble_header[4] = 8'h55;
-      preamble_header[5] = 8'h55;
-      preamble_header[6] = 8'h55;
-      preamble_header[7] = 8'hd5;
-    end
-  end
-  always @(posedge clk, negedge rst_n) begin
-    if (!rst_n) begin
-      eth_header[0]  = DES_MAC[47:40];
-      eth_header[1]  = DES_MAC[39:32];
-      eth_header[2]  = DES_MAC[31:24];
-      eth_header[3]  = DES_MAC[23:16];
-      eth_header[4]  = DES_MAC[15:8];
-      eth_header[5]  = DES_MAC[7:0];
-      eth_header[6]  = BOARD_MAC[47:40];
-      eth_header[7]  = BOARD_MAC[39:32];
-      eth_header[8]  = BOARD_MAC[31:24];
-      eth_header[9]  = BOARD_MAC[23:16];
-      eth_header[10] = BOARD_MAC[15:8];
-      eth_header[11] = BOARD_MAC[7:0];
-      eth_header[12] = ETH_TYPE[15:8];
-      eth_header[13] = ETH_TYPE[7:0];
-    end else if (cur_state == st_init) begin
-      eth_header[0] = des_mac[47:40];
-      eth_header[1] = des_mac[39:32];
-      eth_header[2] = des_mac[31:24];
-      eth_header[3] = des_mac[23:16];
-      eth_header[4] = des_mac[15:8];
-      eth_header[5] = des_mac[7:0];
-    end
-  end
-  always @(posedge clk, negedge rst_n) begin
-    if (cur_state == st_init) begin
-      //版本号：4 首部长度：5(单位:32bit,20byte/4=5)
-      ip_header[0]                                                 = 8'h45;
-      ip_header[1]                                                 = 8'h00;
-      ip_header[2]                                                 = total_num[15:8];
-      ip_header[3]                                                 = total_num[7:0];
-      //16位标识，每次发送累加1     
-      {ip_header[4], ip_header[5]}                                 = ip_header[4] + 1'b1;
-      //bit[15:13]: 010表示不分片
-      {ip_header[6], ip_header[7]}                                 = 16'h4000;
-      //协议：17(udp)                  
-      ip_header[8]                                                 = 8'h40;
-      ip_header[9]                                                 = 8'd17;
-      ip_header[10]                                                = 8'd0;
-      ip_header[11]                                                = 8'd0;
-      //源IP地址
-      {ip_header[12], ip_header[13], ip_header[14], ip_header[15]} = BOARD_IP;
-      //目的IP地址    
-      if (des_ip != 32'd0) {ip_header[16], ip_header[17], ip_header[18], ip_header[19]} <= des_ip;
-      else {ip_header[16], ip_header[17], ip_header[18], ip_header[19]} <= DES_IP;
-    end
-  end
-  always @(posedge clk, negedge rst_n) begin
-    if (cur_state == st_init) begin
-      //16位源端口号：1234  16位目的端口号：1234
-      udp_header[0]                  = 8'h12;
-      udp_header[1]                  = 8'h34;
-      udp_header[2]                  = 8'h12;
-      udp_header[3]                  = 8'h34;
-      //16位udp长度，16位udp校验和              
-      {udp_header[4], udp_header[5]} = udp_num;
-      udp_header[6]                  = 8'd0;
-      udp_header[7]                  = 8'd0;
-    end
-  end
-  reg [4:0] cnt;
-  always @(posedge clk, negedge rst_n) begin
-    if (cur_state == st_check_sum) begin
-      cnt <= cnt + 5'd1;
-      if (cnt == 5'd0) begin
-        check_buffer <= ip_head[0][31:16] + ip_head[0][15:0] + ip_head[1][31:16] + ip_head[1][15:0] + ip_head[2][31:16] + ip_head[2][15:0] + ip_head[3][31:16] + ip_head[3][15:0] + ip_head[4][31:16] + ip_head[4][15:0];
-      end else if (cnt == 5'd1)  //可能出现进位,累加一次
-        check_buffer <= check_buffer[31:16] + check_buffer[15:0];
-      else if (cnt == 5'd2) begin  //可能再次出现进位,累加一次
-        check_buffer <= check_buffer[31:16] + check_buffer[15:0];
-      end else if (cnt == 5'd3) begin  //按位取反 
-        skip_en          <= 1'b1;
-        cnt              <= 5'd0;
-        ip_head[2][15:0] <= ~check_buffer[15:0];
-      end
-    end
-  end
+  reg  [ 63:0] preamble_header;  //前导码
+  reg  [111:0] eth_header;  //以太网部首
+  reg  [159:0] ip_header;  //ip部首
+  reg  [ 63:0] udp_header;  //udp部首
+  reg  [ 31:0] check_buffer;  //首部校验和
 
 
-  reg         start_en_d0;
-  reg         start_en_d1;
-  reg         trig_tx_en;
+  reg  [ 15:0] tx_data_num;  //发送的有效数据字节个数
+  reg  [ 15:0] total_num;  //总字节数
+  reg  [ 15:0] udp_num;  //UDP字节数
+  wire [ 15:0] real_tx_data_num;  //实际发送的字节数(以太网最少字节要求)
 
 
-  reg  [ 1:0] tx_bit_sel;
-  reg  [15:0] data_cnt;  //发送数据个数计数器
-  reg         tx_done_t;
-  reg  [ 4:0] real_add_cnt;  //以太网数据实际多发的字节数
+  reg          start_en_d0;
+  reg          start_en_d1;
+  wire         pos_start_en;  //开始发送数据上升沿
 
-  //wire define                       
-  wire        pos_start_en;  //开始发送数据上升沿
-  wire [15:0] real_tx_data_num;  //实际发送的字节数(以太网最少字节要求)
   //*****************************************************
   //**                    main code
   //*****************************************************
@@ -177,11 +82,6 @@ module udp_tx (
       start_en_d0 <= tx_start_en;
       start_en_d1 <= start_en_d0;
     end
-  end
-  //触发发送信号
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) trig_tx_en <= 1'b0;
-    else trig_tx_en <= pos_start_en;
   end
 
   //寄存数据有效字节
@@ -202,19 +102,6 @@ module udp_tx (
     end
   end
 
-  reg [47:0] r_des_mac;  //发送的目标MAC地址
-  reg [31:0] r_des_ip;  //发送的目标IP地址
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-      r_des_mac <= 16'd0;
-      r_des_ip  <= 16'd0;
-    end else begin
-      if (pos_start_en && cur_state == st_idle) begin
-        r_des_mac <= des_mac;
-        r_des_ip  <= des_ip;
-      end
-    end
-  end
   /*****************************************************************/
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) cur_state <= st_idle;
@@ -232,11 +119,14 @@ module udp_tx (
     next_state = st_idle;
     case (cur_state)
       st_idle: begin  //等待发送数据
-        if (skip_en) next_state = st_check_sum;
+        if (pos_start_en) next_state = st_init;
         else next_state = st_idle;
       end
+      st_init: begin  //
+        next_state = st_check_sum;
+      end
       st_check_sum: begin  //IP首部校验
-        if (skip_en) next_state = st_preamble;
+        if (state_cnt == 12'd5 - 1) next_state = st_preamble;
         else next_state = st_check_sum;
       end
       st_preamble: begin  //发送前导码+帧起始界定符
@@ -260,193 +150,153 @@ module udp_tx (
         else next_state = st_tx_data;
       end
       st_crc: begin  //发送CRC校验值
-        if (state_cnt == 12'd4 - 1) next_state = st_idle;
+        if (state_cnt == 12'd4 - 1) next_state = st_done;
         else next_state = st_crc;
+      end
+      st_done: begin
+        next_state = st_idle;
       end
       default: next_state = st_idle;
     endcase
   end
 
-  //发送数据
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-      skip_en           <= 1'b0;
-      cnt               <= 5'd0;
-      check_buffer      <= 32'd0;
-      ip_head[1][31:16] <= 16'd0;
-      tx_bit_sel        <= 2'b0;
-      crc_en            <= 1'b0;
-      gmii_tx_en        <= 1'b0;
-      gmii_txd          <= 8'd0;
-      tx_req            <= 1'b0;
-      tx_done_t         <= 1'b0;
-      data_cnt          <= 16'd0;
-      real_add_cnt      <= 5'd0;
-      //初始化数组    
-      //前导码 7个8'h55 + 1个8'hd5
-      preamble[0]       <= 8'h55;
-      preamble[1]       <= 8'h55;
-      preamble[2]       <= 8'h55;
-      preamble[3]       <= 8'h55;
-      preamble[4]       <= 8'h55;
-      preamble[5]       <= 8'h55;
-      preamble[6]       <= 8'h55;
-      preamble[7]       <= 8'hd5;
-      //目的MAC地址
-      eth_head[0]       <= DES_MAC[47:40];
-      eth_head[1]       <= DES_MAC[39:32];
-      eth_head[2]       <= DES_MAC[31:24];
-      eth_head[3]       <= DES_MAC[23:16];
-      eth_head[4]       <= DES_MAC[15:8];
-      eth_head[5]       <= DES_MAC[7:0];
-      eth_head[6]       <= BOARD_MAC[47:40];
-      eth_head[7]       <= BOARD_MAC[39:32];
-      eth_head[8]       <= BOARD_MAC[31:24];
-      eth_head[9]       <= BOARD_MAC[23:16];
-      eth_head[10]      <= BOARD_MAC[15:8];
-      eth_head[11]      <= BOARD_MAC[7:0];
-      eth_head[12]      <= ETH_TYPE[15:8];
-      eth_head[13]      <= ETH_TYPE[7:0];
-    end else begin
-      skip_en    <= 1'b0;
-      tx_req     <= 1'b0;
-      crc_en     <= 1'b0;
-      gmii_tx_en <= 1'b0;
-      tx_done_t  <= 1'b0;
-      case (next_state)
-        st_idle: begin
-          if (trig_tx_en) begin
-            skip_en           <= 1'b1;
-            //版本号：4 首部长度：5(单位:32bit,20byte/4=5)
-            ip_head[0]        <= {8'h45, 8'h00, total_num};
-            //16位标识，每次发送累加1      
-            ip_head[1][31:16] <= ip_head[1][31:16] + 1'b1;
-            //bit[15:13]: 010表示不分片
-            ip_head[1][15:0]  <= 16'h4000;
-            //协议：17(udp)                  
-            ip_head[2]        <= {8'h40, 8'd17, 16'h0};
-            //源IP地址               
-            ip_head[3]        <= BOARD_IP;
-            //目的IP地址    
-            if (des_ip != 32'd0) ip_head[4] <= des_ip;
-            else ip_head[4] <= DES_IP;
-            //16位源端口号：1234  16位目的端口号：1234                      
-            ip_head[5] <= {16'd1234, 16'd1234};
-            //16位udp长度，16位udp校验和              
-            ip_head[6] <= {udp_num, 16'h0000};
-            //更新MAC地址
-            if (des_mac != 48'b0) begin
-              //目的MAC地址
-              eth_head[0] <= des_mac[47:40];
-              eth_head[1] <= des_mac[39:32];
-              eth_head[2] <= des_mac[31:24];
-              eth_head[3] <= des_mac[23:16];
-              eth_head[4] <= des_mac[15:8];
-              eth_head[5] <= des_mac[7:0];
-            end
-          end
-        end
-        st_check_sum: begin  //IP首部校验
-          cnt <= cnt + 5'd1;
-          if (cnt == 5'd0) begin
-            check_buffer <= ip_head[0][31:16] + ip_head[0][15:0] + ip_head[1][31:16] + ip_head[1][15:0] + ip_head[2][31:16] + ip_head[2][15:0] + ip_head[3][31:16] + ip_head[3][15:0] + ip_head[4][31:16] + ip_head[4][15:0];
-          end else if (cnt == 5'd1)  //可能出现进位,累加一次
-            check_buffer <= check_buffer[31:16] + check_buffer[15:0];
-          else if (cnt == 5'd2) begin  //可能再次出现进位,累加一次
-            check_buffer <= check_buffer[31:16] + check_buffer[15:0];
-          end else if (cnt == 5'd3) begin  //按位取反 
-            skip_en          <= 1'b1;
-            cnt              <= 5'd0;
-            ip_head[2][15:0] <= ~check_buffer[15:0];
-          end
-        end
-        st_preamble: begin  //发送前导码+帧起始界定符
-          gmii_tx_en <= 1'b1;
-          gmii_txd   <= preamble[cnt];
-          if (cnt == 5'd7) begin
-            skip_en <= 1'b1;
-            cnt     <= 5'd0;
-          end else cnt <= cnt + 5'd1;
-        end
-        st_eth_head: begin  //发送以太网首部
-          gmii_tx_en <= 1'b1;
-          crc_en     <= 1'b1;
-          gmii_txd   <= eth_head[cnt];
-          if (cnt == 5'd13) begin
-            skip_en <= 1'b1;
-            cnt     <= 5'd0;
-          end else cnt <= cnt + 5'd1;
-        end
-        st_ip_head: begin  //发送IP首部 + UDP首部
-          crc_en     <= 1'b1;
-          gmii_tx_en <= 1'b1;
-          tx_bit_sel <= tx_bit_sel + 2'd1;
-          if (tx_bit_sel == 3'd0) gmii_txd <= ip_head[cnt][31:24];
-          else if (tx_bit_sel == 3'd1) gmii_txd <= ip_head[cnt][23:16];
-          else if (tx_bit_sel == 3'd2) begin
-            gmii_txd <= ip_head[cnt][15:8];
-            if (cnt == 5'd6) begin
-              //提前读请求数据，等待数据有效时发送
-              tx_req <= 1'b1;
-            end
-          end else if (tx_bit_sel == 3'd3) begin
-            gmii_txd <= ip_head[cnt][7:0];
-            if (cnt == 5'd6) begin
-              skip_en <= 1'b1;
-              cnt     <= 5'd0;
-            end else cnt <= cnt + 5'd1;
-          end
-        end
-        st_tx_data: begin  //发送数据
-          crc_en     <= 1'b1;
-          gmii_tx_en <= 1'b1;
-          tx_bit_sel <= tx_bit_sel + 3'd1;
-          if (data_cnt < tx_data_num - 16'd1) data_cnt <= data_cnt + 16'd1;
-          else if (data_cnt == tx_data_num - 16'd1) begin
-            //如果发送的有效数据少于18个字节，在后面填补充位
-            //补充的值为最后一次发送的有效数据
-            gmii_txd <= 8'd0;
-            if (data_cnt + real_add_cnt < real_tx_data_num - 16'd1) real_add_cnt <= real_add_cnt + 5'd1;
-            else begin
-              skip_en      <= 1'b1;
-              data_cnt     <= 16'd0;
-              real_add_cnt <= 5'd0;
-              tx_bit_sel   <= 3'd0;
-            end
-          end
-          if (tx_bit_sel == 1'b0) gmii_txd <= tx_data[31:24];
-          else if (tx_bit_sel == 3'd1) gmii_txd <= tx_data[23:16];
-          else if (tx_bit_sel == 3'd2) begin
-            gmii_txd <= tx_data[15:8];
-            if (data_cnt != tx_data_num - 16'd1) tx_req <= 1'b1;
-          end else if (tx_bit_sel == 3'd3) gmii_txd <= tx_data[7:0];
-        end
-        st_crc: begin  //发送CRC校验值
-          gmii_tx_en <= 1'b1;
-          tx_bit_sel <= tx_bit_sel + 3'd1;
-          if (tx_bit_sel == 3'd0) gmii_txd <= {~crc_next[0], ~crc_next[1], ~crc_next[2], ~crc_next[3], ~crc_next[4], ~crc_next[5], ~crc_next[6], ~crc_next[7]};
-          else if (tx_bit_sel == 3'd1) gmii_txd <= {~crc_data[16], ~crc_data[17], ~crc_data[18], ~crc_data[19], ~crc_data[20], ~crc_data[21], ~crc_data[22], ~crc_data[23]};
-          else if (tx_bit_sel == 3'd2) begin
-            gmii_txd <= {~crc_data[8], ~crc_data[9], ~crc_data[10], ~crc_data[11], ~crc_data[12], ~crc_data[13], ~crc_data[14], ~crc_data[15]};
-          end else if (tx_bit_sel == 3'd3) begin
-            gmii_txd  <= {~crc_data[0], ~crc_data[1], ~crc_data[2], ~crc_data[3], ~crc_data[4], ~crc_data[5], ~crc_data[6], ~crc_data[7]};
-            tx_done_t <= 1'b1;
-            skip_en   <= 1'b1;
-          end
-        end
-        default: ;
-      endcase
-    end
+  always @(posedge clk) begin
+    if (cur_state == st_init) preamble_header[63:0] = {8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'hd5};
+    else if (cur_state == st_preamble) preamble_header[63:0] = {preamble_header[55:0], 8'h00};
+    else preamble_header[63:0] <= preamble_header[63:0];
   end
 
-  //发送完成信号及crc值复位信号
-  always @(posedge clk or negedge rst_n) begin
+  /**************************eth header***********************************/
+  always @(posedge clk, negedge rst_n) begin
+    if (!rst_n) eth_header[111:0] = {DES_MAC[47:0], BOARD_MAC[47:0], ETH_TYPE[15:0]};
+    else if (cur_state == st_init) eth_header[111:64] = des_mac[47:0];
+    else if (cur_state == st_eth_head) eth_header[111:0] = {eth_header[103:0], 8'h00};
+  end
+  /**************************IP header***********************************/
+  reg [4:0] cnt;
+  always @(posedge clk, negedge rst_n) begin
     if (!rst_n) begin
+      check_buffer     <= 32'd0;
+      ip_header[159:0] <= 160'd0;
+    end else if (cur_state == st_init) begin
+      //版本号：4 首部长度：5(单位:32bit,20byte/4=5)
+      ip_header[159:128] = {8'h45, 8'h00, total_num[15:0]};
+      //16位标识，每次发送累加1     
+      ip_header[127:112] = ip_header[127:112] + 1'b1;
+      //bit[15:13]: 010表示不分片
+      ip_header[111:96]  = 16'h4000;
+      //协议：17(udp)                  
+      ip_header[95:64]   = {8'h40, 8'h17, 8'h00, 8'h00};
+      //源IP地址
+      ip_header[63:32]   = BOARD_IP[31:0];
+      //目的IP地址    
+      if (des_ip != 32'd0) ip_header[31:0] <= des_ip[31:0];
+      else ip_header[31:0] <= DES_IP[31:0];
+    end else if (cur_state == st_check_sum) begin
+      cnt <= cnt + 5'd1;
+      if (cnt == 5'd0) begin
+        check_buffer <= ip_header[159:144] + ip_header[143:128] + ip_header[127:112] + ip_header[111:96] + ip_header[95:80] + ip_header[79:64] + ip_header[63:48] + ip_header[47:32] + ip_header[31:16] + ip_header[15:0];
+      end else if (cnt == 5'd1)  //可能出现进位,累加一次
+        check_buffer <= check_buffer[31:16] + check_buffer[15:0];
+      else if (cnt == 5'd2) begin  //可能再次出现进位,累加一次
+        check_buffer <= check_buffer[31:16] + check_buffer[15:0];
+      end else if (cnt == 5'd3) begin  //按位取反
+        cnt              <= 5'd0;
+        ip_header[79:64] <= ~check_buffer[15:0];
+      end
+    end else if (next_state == st_ip_head) ip_header[159:0] <= {ip_header[151:0], 8'h00};
+  end
+  /**************************udp header***********************************/
+  always @(posedge clk, negedge rst_n) begin
+    if (!rst_n) udp_header[63:0] = 64'd0;
+    else if (cur_state == st_init) begin
+      //16位源端口号：1234
+      udp_header[63:48] = {16'd1234};
+      //16位目的端口号：1234
+      udp_header[47:32] = {16'd1234};
+      //16位udp长度
+      udp_header[31:16] = udp_num[15:0];
+      //16位udp校验和
+      udp_header[15:0]  = 16'h0000;
+    end else if (cur_state == st_udp_head) udp_header[63:0] = {udp_header[55:0], 8'h00};
+  end
+  /**************************gmii txd************************************/
+  always @(posedge clk, negedge rst_n) begin
+    if (!rst_n) gmii_txd[7:0] <= 8'h00;
+    else
+      case (next_state)
+        st_idle: begin  //等待发送数据
+          gmii_txd[7:0] <= 8'h00;
+        end
+        st_init: begin  //
+          gmii_txd[7:0] <= 8'h00;
+        end
+        st_check_sum: begin  //IP首部校验
+          gmii_txd[7:0] <= 8'h00;
+        end
+        st_preamble: begin  //发送前导码+帧起始界定符
+          gmii_txd[7:0] <= preamble_header[63:56];
+        end
+        st_eth_head: begin  //发送以太网首部
+          gmii_txd[7:0] <= eth_header[111:104];
+        end
+        st_ip_head: begin  //发送IP首部
+          gmii_txd[7:0] <= ip_header[159:152];
+        end
+        st_udp_head: begin  //UDP首部
+          gmii_txd[7:0] <= udp_header[63:56];
+        end
+        st_tx_data: begin  //发送数据
+          gmii_txd[7:0] <= tx_data[7:0];
+        end
+        st_crc: begin  //发送CRC校验值
+          if (state_cnt == 3'd0) gmii_txd <= {~crc_next[0], ~crc_next[1], ~crc_next[2], ~crc_next[3], ~crc_next[4], ~crc_next[5], ~crc_next[6], ~crc_next[7]};
+          else if (state_cnt == 3'd1) gmii_txd <= {~crc_data[16], ~crc_data[17], ~crc_data[18], ~crc_data[19], ~crc_data[20], ~crc_data[21], ~crc_data[22], ~crc_data[23]};
+          else if (state_cnt == 3'd2) begin
+            gmii_txd <= {~crc_data[8], ~crc_data[9], ~crc_data[10], ~crc_data[11], ~crc_data[12], ~crc_data[13], ~crc_data[14], ~crc_data[15]};
+          end else if (state_cnt == 3'd3) begin
+            gmii_txd <= {~crc_data[0], ~crc_data[1], ~crc_data[2], ~crc_data[3], ~crc_data[4], ~crc_data[5], ~crc_data[6], ~crc_data[7]};
+          end
+        end
+        st_done: begin
+          gmii_txd[7:0] <= 8'h00;
+        end
+        default: gmii_txd[7:0] <= 8'h00;
+      endcase
+  end
+
+  always @(posedge clk) begin
+    if (next_state == st_tx_data) tx_req <= 1'b1;
+    else tx_req <= 1'b0;
+  end
+
+  always @(posedge clk) begin
+    if (next_state == st_eth_head) crc_en <= 1'b1;
+    else if (next_state == st_ip_head) crc_en <= 1'b1;
+    else if (next_state == st_udp_head) crc_en <= 1'b1;
+    else if (next_state == st_tx_data) crc_en <= 1'b1;
+    else crc_en <= 1'b0;
+  end
+
+
+  always @(posedge clk) begin
+    if (next_state == st_preamble) gmii_tx_en <= 1'b1;
+    else if (next_state == st_eth_head) gmii_tx_en <= 1'b1;
+    else if (next_state == st_ip_head) gmii_tx_en <= 1'b1;
+    else if (next_state == st_udp_head) gmii_tx_en <= 1'b1;
+    else if (next_state == st_tx_data) gmii_tx_en <= 1'b1;
+    else if (next_state == st_crc) gmii_tx_en <= 1'b1;
+    else gmii_tx_en <= 1'b0;
+  end
+  //发送完成信号及crc值复位信号
+  always @(posedge clk) begin
+    if (next_state == st_done) begin
+      tx_done <= 1'b1;
+      crc_clr <= 1'b1;
+    end
+    begin
       tx_done <= 1'b0;
       crc_clr <= 1'b0;
-    end else begin
-      tx_done <= tx_done_t;
-      crc_clr <= tx_done_t;
     end
   end
 

@@ -161,7 +161,7 @@ module eth_udp_loop (
 
       .probe0(gmii_rxd),         // input wire [7:0]  probe0  
       .probe1(gmii_rx_dv),          // input wire [0:0]  probe1 
-      .probe2(gmii_rx_clk),     // input wire [0:0]  probe2 
+      .probe2(rec_en),     // input wire [0:0]  probe2 
       .probe3(tx_req),      // input wire [0:0]  probe3 
       .probe4(udp_gmii_txd),        // input wire [7:0]  probe4 
       .probe5(udp_gmii_tx_en),          // input wire [0:0]  probe5 

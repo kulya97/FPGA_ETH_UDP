@@ -22,7 +22,7 @@
 
 module tb_eth_tx;
   // udp_tx Parameters
-  parameter PERIOD = 10;
+  parameter PERIOD = 4;
   parameter BOARD_MAC = 48'h00_11_22_33_44_55;
   parameter BOARD_IP = {8'd192, 8'd168, 8'd0, 8'd10};
   parameter DES_MAC = 48'hff_ff_ff_ff_ff_ff;
@@ -30,13 +30,13 @@ module tb_eth_tx;
 
 
   // udp_tx Inputs
-  reg         clk = 0;
+  reg         clk = 1;
   reg         rst_n = 0;
   reg  [47:0] des_mac = 48'h12_34_45_67_89_ab;
   reg  [31:0] des_ip = {8'd192, 8'd168, 8'd0, 8'd2};
   reg         tx_start_en = 0;
   reg  [ 7:0] tx_data = 0;
-  reg  [15:0] tx_byte_num = 10;
+  reg  [15:0] tx_byte_num = 20;
 
   // udp_tx Outputs
   wire        tx_done;
@@ -46,26 +46,13 @@ module tb_eth_tx;
   wire [ 7:0] gmii_txd;
 
 
-  initial begin
-    forever #(PERIOD / 2) clk = ~clk;
-  end
+  always #(PERIOD / 2) clk = ~clk;
 
   initial begin
     #(PERIOD * 2) rst_n = 1;
     #(PERIOD * 10) tx_start_en = 1'b0;
     #(PERIOD * 1) tx_start_en = 1'b1;
-    tx_data = 8'h0;
-    wait (tx_req);
     #(PERIOD * 1) tx_data = 8'h1;
-    #(PERIOD * 1) tx_data = 8'h2;
-    #(PERIOD * 1) tx_data = 8'h3;
-    #(PERIOD * 1) tx_data = 8'h4;
-    #(PERIOD * 1) tx_data = 8'h5;
-    #(PERIOD * 1) tx_data = 8'h6;
-    #(PERIOD * 1) tx_data = 8'h7;
-    #(PERIOD * 1) tx_data = 8'h8;
-    #(PERIOD * 1) tx_data = 8'h9;
-    #(PERIOD * 1) tx_data = 8'ha;
     #(PERIOD * 200);
     $finish;
   end
@@ -111,7 +98,7 @@ module tb_eth_tx;
   );
   //以太网发送CRC校验模块
   crc32_d8 u_crc32_d8 (
-      .clk     (gmii_tx_clk),
+      .clk     (clk),
       .rst_n   (rst_n),
       .data    (crc_d8),
       .crc_en  (crc_en),

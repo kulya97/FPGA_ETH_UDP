@@ -103,20 +103,20 @@ module udp_tx (
   end
 
   /*****************************************************************/
-  always @(posedge clk or negedge rst_n) begin
+  always @(posedge clk, negedge rst_n) begin
     if (!rst_n) cur_state <= st_idle;
     else cur_state <= next_state;
   end
 
   reg [11:0] state_cnt;
-  always @(posedge clk or negedge rst_n) begin
+  always @(posedge clk, negedge rst_n) begin
     if (!rst_n) state_cnt <= 12'd0;
     else if (next_state != cur_state) state_cnt <= 12'd0;
     else state_cnt <= state_cnt + 1'd1;
   end
 
   always @(*) begin
-    next_state = st_idle;
+    //next_state = st_idle;
     case (cur_state)
       st_idle: begin  //等待发送数据
         if (pos_start_en) next_state = st_init;
@@ -161,16 +161,16 @@ module udp_tx (
   end
 
   always @(posedge clk) begin
-    if (cur_state == st_init) preamble_header[63:0] = {8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'hd5};
-    else if (cur_state == st_preamble) preamble_header[63:0] = {preamble_header[55:0], 8'h00};
+    if (cur_state == st_init) preamble_header[63:0] <= {8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'h55, 8'hd5};
+    else if (cur_state == st_preamble) preamble_header[63:0] <= {preamble_header[55:0], 8'h00};
     else preamble_header[63:0] <= preamble_header[63:0];
   end
 
   /**************************eth header***********************************/
   always @(posedge clk, negedge rst_n) begin
-    if (!rst_n) eth_header[111:0] = {DES_MAC[47:0], BOARD_MAC[47:0], ETH_TYPE[15:0]};
-    else if (cur_state == st_init) eth_header[111:64] = des_mac[47:0];
-    else if (cur_state == st_eth_head) eth_header[111:0] = {eth_header[103:0], 8'h00};
+    if (!rst_n) eth_header[111:0] <= {DES_MAC[47:0], BOARD_MAC[47:0], ETH_TYPE[15:0]};
+    else if (cur_state == st_init) eth_header[111:0] <= {des_mac[47:0], BOARD_MAC[47:0], ETH_TYPE[15:0]};
+    else if (cur_state == st_eth_head) eth_header[111:0] <= {eth_header[103:0], 8'h00};
   end
   /**************************IP header***********************************/
   reg [4:0] cnt;
@@ -180,15 +180,15 @@ module udp_tx (
       ip_header[159:0] <= 160'd0;
     end else if (cur_state == st_init) begin
       //版本号：4 首部长度：5(单位:32bit,20byte/4=5)
-      ip_header[159:128] = {8'h45, 8'h00, total_num[15:0]};
+      ip_header[159:128]<= {8'h45, 8'h00, total_num[15:0]};
       //16位标识，每次发送累加1     
-      ip_header[127:112] = ip_header[127:112] + 1'b1;
+      ip_header[127:112] <= ip_header[127:112] + 1'b1;
       //bit[15:13]: 010表示不分片
-      ip_header[111:96]  = 16'h4000;
+      ip_header[111:96]  <= 16'h4000;
       //协议：17(udp)                  
-      ip_header[95:64]   = {8'h40, 8'h17, 8'h00, 8'h00};
+      ip_header[95:64]  <= {8'h40, 8'h17, 8'h00, 8'h00};
       //源IP地址
-      ip_header[63:32]   = BOARD_IP[31:0];
+      ip_header[63:32]   <= BOARD_IP[31:0];
       //目的IP地址    
       if (des_ip != 32'd0) ip_header[31:0] <= des_ip[31:0];
       else ip_header[31:0] <= DES_IP[31:0];
@@ -204,27 +204,27 @@ module udp_tx (
         cnt              <= 5'd0;
         ip_header[79:64] <= ~check_buffer[15:0];
       end
-    end else if (next_state == st_ip_head) ip_header[159:0] <= {ip_header[151:0], 8'h00};
+    end else if (cur_state == st_ip_head) ip_header[159:0] <= {ip_header[151:0], 8'h00};
   end
   /**************************udp header***********************************/
   always @(posedge clk, negedge rst_n) begin
-    if (!rst_n) udp_header[63:0] = 64'd0;
+    if (!rst_n) udp_header[63:0]<= 64'd0;
     else if (cur_state == st_init) begin
       //16位源端口号：1234
-      udp_header[63:48] = {16'd1234};
+      udp_header[63:48]<= {16'd1234};
       //16位目的端口号：1234
-      udp_header[47:32] = {16'd1234};
+      udp_header[47:32]<= {16'd1234};
       //16位udp长度
-      udp_header[31:16] = udp_num[15:0];
+      udp_header[31:16]<= udp_num[15:0];
       //16位udp校验和
-      udp_header[15:0]  = 16'h0000;
-    end else if (cur_state == st_udp_head) udp_header[63:0] = {udp_header[55:0], 8'h00};
+      udp_header[15:0] <= 16'h0000;
+    end else if (cur_state == st_udp_head) udp_header[63:0]<= {udp_header[55:0], 8'h00};
   end
   /**************************gmii txd************************************/
   always @(posedge clk, negedge rst_n) begin
     if (!rst_n) gmii_txd[7:0] <= 8'h00;
     else
-      case (next_state)
+      case (cur_state)
         st_idle: begin  //等待发送数据
           gmii_txd[7:0] <= 8'h00;
         end
@@ -266,31 +266,31 @@ module udp_tx (
   end
 
   always @(posedge clk) begin
-    if (next_state == st_tx_data) tx_req <= 1'b1;
+    if (next_state == st_tx_data) tx_req <= 1'b1;  //这里要提前两个时钟读取数据，用nextstate，fifo用fist word 模式
     else tx_req <= 1'b0;
   end
 
   always @(posedge clk) begin
-    if (next_state == st_eth_head) crc_en <= 1'b1;
-    else if (next_state == st_ip_head) crc_en <= 1'b1;
-    else if (next_state == st_udp_head) crc_en <= 1'b1;
-    else if (next_state == st_tx_data) crc_en <= 1'b1;
+    if (cur_state == st_eth_head) crc_en <= 1'b1;
+    else if (cur_state == st_ip_head) crc_en <= 1'b1;
+    else if (cur_state == st_udp_head) crc_en <= 1'b1;
+    else if (cur_state == st_tx_data) crc_en <= 1'b1;
     else crc_en <= 1'b0;
   end
 
 
   always @(posedge clk) begin
-    if (next_state == st_preamble) gmii_tx_en <= 1'b1;
-    else if (next_state == st_eth_head) gmii_tx_en <= 1'b1;
-    else if (next_state == st_ip_head) gmii_tx_en <= 1'b1;
-    else if (next_state == st_udp_head) gmii_tx_en <= 1'b1;
-    else if (next_state == st_tx_data) gmii_tx_en <= 1'b1;
-    else if (next_state == st_crc) gmii_tx_en <= 1'b1;
+    if (cur_state == st_preamble) gmii_tx_en <= 1'b1;
+    else if (cur_state == st_eth_head) gmii_tx_en <= 1'b1;
+    else if (cur_state == st_ip_head) gmii_tx_en <= 1'b1;
+    else if (cur_state == st_udp_head) gmii_tx_en <= 1'b1;
+    else if (cur_state == st_tx_data) gmii_tx_en <= 1'b1;
+    else if (cur_state == st_crc) gmii_tx_en <= 1'b1;
     else gmii_tx_en <= 1'b0;
   end
   //发送完成信号及crc值复位信号
   always @(posedge clk) begin
-    if (next_state == st_done) begin
+    if (cur_state == st_done) begin
       tx_done <= 1'b1;
       crc_clr <= 1'b1;
     end

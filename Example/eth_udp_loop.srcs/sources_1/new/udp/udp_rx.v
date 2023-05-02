@@ -32,7 +32,7 @@ module udp_rx (
   assign eth_type     = eth_header[15:0];
   assign des_ip       = ip_header[31:0];
   assign udp_byte_num = udp_header[31:16];
-  
+
   localparam st_idle = 7'd0;  //初始状态，等待接收前导码
   localparam st_preamble = 7'd1;  //接收前导码状态 
   localparam st_eth_head = 7'd2;  //接收以太网帧头
@@ -156,11 +156,13 @@ module udp_rx (
     else rec_data <= 'd0;
   end
 
+
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) rec_en <= 1'd0;
     else if (cur_state == st_rx_data) rec_en <= 1'b1;
     else rec_en <= 1'd0;
   end
+
   /***************************************************************/
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

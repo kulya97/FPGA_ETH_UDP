@@ -53,6 +53,12 @@ module tb_eth_tx;
     #(PERIOD * 10) tx_start_en = 1'b0;
     #(PERIOD * 1) tx_start_en = 1'b1;
     #(PERIOD * 1) tx_data = 8'h1;
+    #(PERIOD * 10) tx_start_en = 1'b0;
+    #(PERIOD * 200);
+    #(PERIOD * 10) tx_start_en = 1'b0;
+    #(PERIOD * 1) tx_start_en = 1'b1;
+    #(PERIOD * 1) tx_data = 8'h1;
+    #(PERIOD * 10) tx_start_en = 1'b0;
     #(PERIOD * 200);
     $finish;
   end
@@ -87,7 +93,7 @@ module tb_eth_tx;
       .tx_data    (tx_data[7:0]),
       .tx_byte_num(tx_byte_num[15:0]),
       .crc_data   (crc_data[31:0]),
-      .crc_next   (crc_next[7:0]),
+      .crc_next   (crc_next[31:0]),
 
       .tx_done   (tx_done),
       .tx_req    (tx_req),

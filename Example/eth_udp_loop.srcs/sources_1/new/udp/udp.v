@@ -75,7 +75,7 @@ module udp (
       .des_mac    (des_mac),
       .des_ip     (des_ip),
       .crc_data   (crc_data),
-      .crc_next   (crc_next[31:24]),
+      .crc_next   (crc_next[31:0]),
       .tx_done    (tx_done),
       .tx_req     (tx_req),
       .gmii_tx_en (gmii_tx_en),

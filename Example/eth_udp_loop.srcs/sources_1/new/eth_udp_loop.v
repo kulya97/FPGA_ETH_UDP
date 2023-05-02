@@ -17,7 +17,7 @@ module eth_udp_loop (
   //parameter define
   //开发板MAC地址 00-11-22-33-44-55
   parameter BOARD_MAC = 48'h00_11_22_33_44_55;
-  //开发板IP地址 192.168.1.10
+  //开发板IP地址 
   parameter BOARD_IP = {8'd192, 8'd168, 8'd0, 8'd10};
   //目的MAC地址 ff_ff_ff_ff_ff_ff
   parameter DES_MAC = 48'hff_ff_ff_ff_ff_ff;

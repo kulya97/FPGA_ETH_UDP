@@ -25,7 +25,7 @@ module udp_txv2 (
     input rst_n, //复位信号，低电平有效
 
     input             tx_start_en,  //以太网开始发送信号
-    input      [31:0] tx_data,      //以太网待发送数据  
+    input      [ 7:0] tx_data,      //以太网待发送数据  
     input      [15:0] tx_byte_num,  //以太网发送的有效字节数
     input      [47:0] des_mac,      //发送的目标MAC地址
     input      [31:0] des_ip,       //发送的目标IP地址    
@@ -290,13 +290,10 @@ module udp_txv2 (
           else if (tx_bit_sel == 3'd1) gmii_txd <= ip_head[cnt][23:16];
           else if (tx_bit_sel == 3'd2) begin
             gmii_txd <= ip_head[cnt][15:8];
-            if (cnt == 5'd6) begin
-              //提前读请求数据，等待数据有效时发送
-              tx_req <= 1'b1;
-            end
           end else if (tx_bit_sel == 3'd3) begin
             gmii_txd <= ip_head[cnt][7:0];
             if (cnt == 5'd6) begin
+              tx_req  <= 1'b1;
               skip_en <= 1'b1;
               cnt     <= 5'd0;
             end else cnt <= cnt + 5'd1;
@@ -305,7 +302,7 @@ module udp_txv2 (
         st_tx_data: begin  //发送数据
           crc_en     <= 1'b1;
           gmii_tx_en <= 1'b1;
-          tx_bit_sel <= tx_bit_sel + 3'd1;
+          tx_bit_sel <= 'd0;
           if (data_cnt < tx_data_num - 16'd1) data_cnt <= data_cnt + 16'd1;
           else if (data_cnt == tx_data_num - 16'd1) begin
             //如果发送的有效数据少于18个字节，在后面填补充位
@@ -319,12 +316,9 @@ module udp_txv2 (
               tx_bit_sel   <= 3'd0;
             end
           end
-          if (tx_bit_sel == 1'b0) gmii_txd <= tx_data[31:24];
-          else if (tx_bit_sel == 3'd1) gmii_txd <= tx_data[23:16];
-          else if (tx_bit_sel == 3'd2) begin
-            gmii_txd <= tx_data[15:8];
-            if (data_cnt != tx_data_num - 16'd1) tx_req <= 1'b1;
-          end else if (tx_bit_sel == 3'd3) gmii_txd <= tx_data[7:0];
+          gmii_txd <= tx_data[7:0];
+          if (data_cnt != tx_data_num - 16'd1) tx_req <= 1'b1;
+
         end
         st_crc: begin  //发送CRC校验值
           gmii_tx_en <= 1'b1;
